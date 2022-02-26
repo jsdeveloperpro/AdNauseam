@@ -670,6 +670,19 @@
   };
 
   /********************************************************************/
+  // Adn on click strict block
+
+  function onClickStrict (ev) {
+    vAPI.messaging.send(
+      'adnauseam', {
+      what: 'toggleStrictBlockButton',
+      url: popupData.pageURL,
+      scope: ev.altKey || ev.metaKey ? 'page' : '',
+      tabId: popupData.tabId
+    });
+  }
+
+  /********************************************************************/
 
   (function () {
 
@@ -684,6 +697,7 @@
 
     uDom('#pause-button').on('click', toggleEnabled);
     uDom('#resume-button').on('click', toggleEnabled);
+    uDom('#strict-button').on('click', onClickStrict);
     uDom('#notifications').on('click', setBackBlockHeight);
     uDom('body').on('mouseenter', '[data-tip]', onShowTooltip)
       .on('mouseleave', '[data-tip]', onHideTooltip);

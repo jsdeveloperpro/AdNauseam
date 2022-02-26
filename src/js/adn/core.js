@@ -1192,7 +1192,9 @@ const adnauseam = (function () {
    *      if not, return false
    *
    *  3) whether the request is strictBlocked (iff strictBlocking is enabled)
-   *      if so, return true;
+   *      if so, return true;\
+   *      A) If global Strict Block is enabled
+   *      B) If request domain/page is in the StrictBlockList
    *
    *  4) check if any list it was found on allows blocks
    *  	A) user list:      block
@@ -1212,10 +1214,17 @@ const adnauseam = (function () {
       return false;
     }
 
-    if (isStrictBlock(result, context)) {                               // 3.
-      return true;  
+    if (isStrictBlock(result, context)) {                               // 3.A
+      logNetBlock('Global Strict Block');
+      return true;
     }
-
+    
+    var getIsPageStrictBlocked = µb.getIsPageStrictBlocked(context.url)
+    // console.log("isStrictBlocked", isStrictBlocked, context.url, context.docDomain)
+    if (getIsPageStrictBlocked) {
+      logNetBlock('From StrictBlockList', context.url);
+      return true;
+    }
     ///////////////////////////////////////////////////////////////////////
     const snfe = staticNetFilteringEngine, snfeData = snfe.toLogData();
 
@@ -1531,6 +1540,24 @@ const adnauseam = (function () {
       wlId && vAPI.tabs.replace(wlId, vAPI.getURL("dashboard.html"));
     }
   };
+
+  // Adn - StrictBlockList
+  // toggle page strictBlock
+  exports.toggleStrictBlockButton = function (request, pageStore, tabId) { 
+    const store = µb.pageStoreFromTabId(request.tabId);
+    if (store) {
+
+      µb.toggleStrictBlock(request.url, request.scope, request.state);
+      // updateBadges();
+
+      // close strictblocklist if open (see gh #113)
+      const wlId = getExtPageTabId("dashboard.html#strictblocklist.html");
+      wlId && vAPI.tabs.replace(wlId, vAPI.getURL("dashboard.html"));
+    }
+
+
+    console.log("[ADN] toggleStrictBlock", request, pageStore, tabId)
+  }
 
   // Called when new top-level page is loaded
   exports.onPageLoad = function (tabId, requestURL) {
